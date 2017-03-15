@@ -1,0 +1,69 @@
+{
+  "intents": [
+    {
+      "intent": "MyCityIsIntent",
+      "slots": [
+        {
+          "name": "City",
+          "type": "AMAZON.US_CITY"
+        }
+      ]
+    },
+    
+    
+    {
+      "intent": "WhatsMyCityIntent"
+    },
+    
+    
+    {
+      "intent": "MyStateIsIntent",
+      "slots": [
+        {
+          "name": "State",
+          "type": "AMAZON.US_STATE"
+        }
+      ]
+    },
+    {
+      "intent": "WhatsMyStateIntent"
+    },
+    
+      {
+      "intent": "MyCategoryIsIntent",
+      "slots": [
+        {
+          "name": "Category",
+          "type": "CATEGORY_TYPE"
+        }
+      ]
+    },
+    
+    {
+      "intent": "WhatsMyCategoryIntent"
+    },
+    
+    {
+      "intent": "SearchMeetupsIntent"
+    },
+    
+    
+    {
+      "intent": "BookmarkMeetupIntent",
+      "slots": [
+        {
+          "name": "MeetupNo",
+          "type": "AMAZON.NUMBER"
+        }
+  		]
+    },
+    {
+      "intent": "GetBookmarksIntent"
+    },
+    
+    {
+      "intent": "AMAZON.HelpIntent"
+      
+    }
+  ]
+}

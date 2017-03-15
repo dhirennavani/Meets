@@ -1,0 +1,22 @@
+WhatsMyStateIntent what's my state
+WhatsMyStateIntent what is my state
+WhatsMyStateIntent tell me my state
+WhatsMyCityIntent what's my city
+WhatsMyCityIntent what is my city
+WhatsMyCityIntent tell me my city
+MyStateIsIntent my state is {State}
+MyStateIsIntent my state's {State}
+MyCityIsIntent my city is {City}
+MyCityIsIntent my city's {City}
+WhatsMyCategoryIntent what's my category
+WhatsMyCategoryIntent what is my category
+WhatsMyCategoryIntent tell me my category
+MyCategoryIsIntent my category is {Category}
+MyCategoryIsIntent my category's {Category}
+SearchMeetupsIntent search meetups for me
+BookmarkMeetupIntent bookmark {MeetupNo}
+BookmarkMeetupIntent bookmark meetup {MeetupNo}
+GetBookmarksIntent get my bookmarks
+GetBookmarksIntent my bookmarks
+GetBookmarksIntent give my bookmarks
+GetBookmarksIntent what are my bookmarks
