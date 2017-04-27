@@ -113,16 +113,13 @@ categories = {
 # --------------- Helpers that build all of the responses ----------------------
 
 def build_speechlet_response(title, output, reprompt_text, should_end_session):
+    output=output.replace("&", "and")
     return {
         'outputSpeech': {
             'type': 'PlainText',
             'text': output
         },
-        'card': {
-            'type': 'Simple',
-            'title': "SessionSpeechlet - " + title,
-            'content': "SessionSpeechlet - " + output
-        },
+       
         'reprompt': {
             'outputSpeech': {
                 'type': 'PlainText',
@@ -181,10 +178,10 @@ def get_welcome_response(session):
     print(session)
     #session['attributes']=dict()
     card_title = "Welcome"
-    speech_output = "Welcome to the Meets . "
+    speech_output = "Welcome to City Meets . You can search for meets in your city by saying search meets. To stop the skill at any point, say stop.  "
     # If the user either does not reply to the welcome message or says something
     # that is not understood, they will be prompted again with this text.
-    reprompt_text = "Welcome to the Meets."
+    reprompt_text = "Welcome to city Meets. You can search for meets in your city by saying search meets. To stop the skill at any point say stop."
     should_end_session = False
     return build_response(session['attributes'], build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -193,7 +190,7 @@ def get_welcome_response(session):
 def handle_session_end_request():
     print("About to end")
     card_title = "Session Ended"
-    speech_output = "Thank you for trying the Meets " \
+    speech_output = "Thank you for trying city Meets " \
                     "Have a nice day! "
     # Setting this to true ends the session and exits the skill.
     should_end_session = True
@@ -210,20 +207,22 @@ def set_city_in_session(intent, session):
     card_title = intent['name']
     should_end_session = False
 
-    if 'City' in intent['slots']:
+    if 'City' in intent['slots'] and 'value' in intent['slots']['City']:
         city = intent['slots']['City']['value']
         update_to_dynamo('city', city, session)
         speech_output = "Your city is " + \
                         get_from_dynamo('city',session) + \
-                        ". Ask city by saying, " \
-                        "what's my city?"
+                        ". You can ask city by saying, " \
+                        "what's my city? or else If you have set your state and category, you can search for meets by saying search meets. Else, you can set your state and category in the same way as you set your city"
+                        
+                        
         reprompt_text = ". ask  city by saying, " \
-                        "what's my city?"
+                        "what's my city?  or else If you have set your state and category, you can search for meets by saying search meets. Else, you can set your state and category in the same way as you set your city"
     else:
         speech_output = "I'm not sure what you said. " \
                         "Please try again."
         reprompt_text = "I'm not sure what your city is. " \
-                        "Tell me your city by saying, " \
+                        "Tell me your city for example Seattle by saying, " \
                         "my city is Seattle."
     return build_response(session['attributes'], build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -233,7 +232,7 @@ def get_city_from_session(intent, session):
     reprompt_text = None
     if "city" in session.get('attributes', {}):
         city = session['attributes']['city']
-        speech_output = "Your city is " + city +"."
+        speech_output = "Your city is " + city +". If you have set your state and category, you can search for meets by saying search meets. Else, you can set your state and category in the same way as you set your city"
     else:
         speech_output = "I'm not sure what your city is. " \
                         "You can say, my city is Seattle."
@@ -258,20 +257,23 @@ def set_state_in_session(intent, session):
     """
     card_title = intent['name']
     should_end_session = False
-    if 'State' in intent['slots']:
+    if 'State' in intent['slots'] and 'value' in intent['slots']['State'] and intent['slots']['State']['value'] in us_state_abbrev :
         state2 = intent['slots']['State']['value']
         update_to_dynamo('us_state', state2, session)
         speech_output = "I now know your state is " + \
                         get_from_dynamo('us_state',session) + \
                         ". You can ask me your state by saying, " \
-                        "what's my state?"
-        reprompt_text = "Ask me your state by saying, " \
-                        "what is my state?"
+                        '''what's my state?
+                        else If you have set your city and category, you can search for meets by saying search meets. Else, you can set your city and category in the same way as you set your state.
+                        '''
+        reprompt_text = "You can ask me your state by saying, " \
+                        '''what is my state?
+                        else If you have set your city and category, you can search for meets by saying search meets. Else, you can set your city and category in the same way as you set your state.'''
     else:
         speech_output = "I'm not sure what your state is. " \
                         "Please try again."
         reprompt_text = "I'm not sure what your state is. " \
-                        "Tell me your state by saying, " \
+                        "Tell me your state for example Washington by saying, " \
                         "my state is washington."
     return build_response(session['attributes'], build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -281,10 +283,10 @@ def get_state_from_session(intent, session):
     reprompt_text = None
     if 'us_state' in session.get('attributes', {}):
         state = session['attributes']['us_state']
-        speech_output = "Your state is " + state + "."
+        speech_output = "Your state is " + state + ". If you have set your city and category, you can search for meets by saying search meets. Else, you can set your city and category in the same way as you set your state"
     else:
         speech_output = "I'm not sure what your state is. " \
-                        "You can say, state is washington."
+                        "to set the state, you can say, my state is washington."
     should_end_session = False
 
     
@@ -303,21 +305,24 @@ def set_category_in_session(intent, session):
     card_title = intent['name']
     should_end_session = False
 
-    if 'Category' in intent['slots']:
+    if 'Category' in intent['slots'] and 'value' in intent['slots']['Category'] and intent['slots']['Category']['value'] in categories:
         category = intent['slots']['Category']['value']
         session['attributes']['category'] = (category)
         update_to_dynamo('category', category, session)
         speech_output = "I now know your category is " + \
                         get_from_dynamo('category', session) + \
-                        ". Ask me your category by saying, " \
-                        "what's my category?"
-        reprompt_text = "Ask me your category by saying, " \
+                        '''. You can ask me your category by saying, " \
+                        "what's my category?
+                        
+                        else If you have set your city and category, you can search for meets by saying search meets. Else, you can set your city and state in the same way as you set your category.
+                        '''
+        reprompt_text = "You can ask me your category by saying, " \
                         "what's my category?"
     else:
         speech_output = "I'm not sure what your category is. " \
                         "Please try again. To find list of available categories, say list categories"
         reprompt_text = "I'm not sure what your category is. " \
-                        "Tell me your category by saying, " \
+                        "Tell me your category for example Food and Drink by saying, " \
                         "my category is Food and Drink. To find list of available categories, say list categories."
     return build_response(session['attributes'], build_speechlet_response(
         card_title, speech_output, reprompt_text, should_end_session))
@@ -367,7 +372,7 @@ def search_meetups(intent, session):
     else:
         should_end_session=False
         reprompt_text=None
-        speech_output="Cannot find your city. Tell me your city by saying, my city is Seattle."
+        speech_output="Cannot find your city. Tell me your city for example Seattle by saying, my city is Seattle."
         return build_response(session['attributes'], build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
 
@@ -378,7 +383,7 @@ def search_meetups(intent, session):
     else:
         should_end_session=False
         reprompt_text=None
-        speech_output="Cannot find your category. Tell me your category by saying, my category is food and drink. To find list of available categories, say list categories"
+        speech_output="Cannot find your category. Tell me your category for example food and drink by saying, my category is food and drink. To find list of available categories, say list categories"
         return build_response(session['attributes'], build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
             
@@ -388,10 +393,13 @@ def search_meetups(intent, session):
     else:
         should_end_session=False
         reprompt_text=None
-        speech_output="Cannot find your state. Tell me your state by saying, my state is washington."
+        speech_output="Cannot find your state. Tell me your state for example Washington by saying, my state is washington."
         return build_response(session['attributes'], build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
-    
+        
+    """cityurl="https://api.meetup.com/2/cities.json?state="+str(session['attributes']['us_state'])+"&key="++ConfigSectionMap("MEETUPKEY")['meetup_api_key']
+    requests.get(cityurl)
+    simplejson.loads(requests.get(cityurl).text.encode("utf-8"))"""
     
     resp = get_from_meetup(city, state, category)
     resp_var=simplejson.loads((resp.text.encode("utf-8")))
@@ -438,7 +446,7 @@ def bookmark_meetup_from_session(intent, session):
     card_title = intent['name']
     should_end_session = False
 
-    if 'MeetupNo' in intent['slots']:
+    if 'MeetupNo' in intent['slots'] and 'value' in intent['slots']['MeetupNo']:
         meetupno = int(intent['slots']['MeetupNo']['value'])
         speech_output=""
         #print("has meetup no as"+ str(meetupno))
@@ -458,14 +466,14 @@ def bookmark_meetup_from_session(intent, session):
             update_to_dynamo('value_bookmark', value, session)
         else:
             speech_output="Cannot Bookmark. to get your bookmarks, say get my bookmarks. to delete your bookmarks, say delete bookmarks"
-        reprompt_text = "You can bookmark current meet by saying " \
+        reprompt_text = "You can bookmark current meet for example meet 1 by saying " \
                         "bookmark meetup 1?"
     else:
         speech_output = "I'm not sure what your meet to be bookmarked is. " \
                         "Please try again.  to get your bookmarks, say get my bookmarks. to delete your bookmarks, say delete bookmarks"
         reprompt_text = "Not sure what your meet to be bookmarked is. " \
-                        "Tell me your meet to be bookmarked by saying, " \
-                        "bookmark meetup 1"
+                        "Tell me your meet to be bookmarked for example meet 1 by saying, " \
+                        "bookmark meet 1"
     #if session.get('attributes', {}) and "meetups" in session.get('attributes', {}):
         #meetup_list= session['attributes']['meetups']
     return build_response(session['attributes'], build_speechlet_response(
@@ -489,9 +497,10 @@ def get_bookmarks_from_session(intent, session):
             dt.strftime('"%A, %d. %B %Y %I:%M%p"')
             s=' . The event is on {0:%d} {0:%B} at {0:%I:%M%p}'.format(dt)
             speech_output=speech_output+s+" ."
+        speech_output=speech_output+" To search for more meets, say search meets."
             
     else:
-        speech_output="No bookmarks found. to delete your bookmarks, say delete bookmarks"
+        speech_output="No bookmarks found. to search more meets, say search meets."
     should_end_session = False
     return build_response(session['attributes'], build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))            
@@ -509,7 +518,7 @@ def detail_meetup_from_session(intent, session):
     card_title = intent['name']
     should_end_session = False
 
-    if 'DetailNo' in intent['slots']:
+    if 'DetailNo' in intent['slots'] and 'value' in intent['slots']['DetailNo']:
         #print(intent['slots']['DetailNo']['value'])
         detailno = int(intent['slots']['DetailNo']['value'])
         speech_output=""
@@ -519,21 +528,21 @@ def detail_meetup_from_session(intent, session):
             tbdet=meetup_list[detailno]
             speech_output="Name is "+tbdet['name']+ ". Name of the group is "+str(tbdet['group']['name'])+". "
             if 'yes_rsvp_count' in tbdet:
-                speech_output=speech_output+"Number of people RSVPs "+str(tbdet['yes_rsvp_count'])+ ". "
+                speech_output=speech_output+"Number of  RSVPs "+str(tbdet['yes_rsvp_count'])+ ""
             if 'venue' in tbdet:
                speech_output=speech_output+ ". Name of the venue.  "+tbdet['venue']['name']+". "
                if 'address_1' in tbdet['venue']:
                    speech_output=speech_output+ " Venue street address is. "+tbdet['venue']['address_1']+'.'
-            
+            speech_output=speech_output+" Detail ends. You can get details of other meets in the same manner. To search for meets say search meets."
         else:
-            speech_output="No detail available"
-        reprompt_text = "You can get detail for the meet by saying " \
+            speech_output="No detail available. You can try finding detail of some other meet in the same manner. To search say search meets. "
+        reprompt_text = "You can get detail for the meet for example  meet 1 by saying " \
                         "detail meet 1?"
     else:
         speech_output = "I'm not sure what your meet is. " \
                         "Please try again."
         reprompt_text = "I'm not sure what your meet is. " \
-                        "You can ask me details your meet by saying, " \
+                        "You can ask me details of your meet for example meet 1 by saying, " \
                         "detail meetup 1"
     if session.get('attributes', {}) and "meetups" in session.get('attributes', {}):
         meetup_list = session['attributes']['meetups']
@@ -546,12 +555,13 @@ def list_categories(intent, session):
     speech_output="Meet Categories are. "
     for akey in categories.keys():
         speech_output =  speech_output+ str(akey)+". "
+    speech_output=speech_output+ "To set your category to for example food and drink, say my category is food and drink."
     should_end_session = False
     reprompt_text = None
     return build_response(session['attributes'], build_speechlet_response(intent['name'], speech_output, reprompt_text, should_end_session))
 
 def delete_bookmarks(intent, session):
-    speech_output="Deleted all bookmarks"
+    speech_output="Deleted all bookmarks. you can search for meets by saying, search meets."
     update_to_dynamo('value_bookmark', ":::", session)
     reprompt_text=None
     should_end_session=False
@@ -563,10 +573,37 @@ def repeat_search(intent, session):
     if 'repeat_search' in session['attributes']:
         speech_output=session['attributes']['repeat_search']
     else:
-        speech_output="cannot repeat. Sorry"
+        speech_output="cannot repeat. Sorry. Say repeat again to try again or search for meets by saying search meets."
     should_end_session=False
     return build_response(session['attributes'], build_speechlet_response(
         intent['name'], speech_output, None, should_end_session))
+        
+def get_help(intent, session):
+    speech_output='''
+    
+    Welcome to Help.
+    Please note that you can search for meets only after setting city, state and category.
+    Following are the options available to you:
+    To set state for example to Washington, you can say my state is Washington.
+    To know your current state, say what is my state.
+    You can set and retrieve your city and category in the same manner, by replacing state by city or category accordingly in above utterances.
+    Your category should be among the list of categories available, to find list of categories say list categories.
+    To search for meets, say search meets.
+    To bookmark a meet with for example index 1, say bookmark meet 1.
+    To get your bookmarks, say get my bookmarks.
+    To delete all bookmarks, sat delete bookmarks.
+    To get details of a meet for example meet with index 1, say detail meet 1.
+    To stop the skill, say stop.
+    To repeat say help again.
+
+    what would you like to do?
+    
+    '''
+    reprompt_text = "To repeat say help again, else tell me what would you like to do?"
+    should_end_session = False
+    return build_response(session['attributes'], build_speechlet_response(
+        intent['name'], speech_output, reprompt_text, should_end_session))
+
 # --------------- Events ------------------
 
 def on_session_started(session_started_request, session):
@@ -644,7 +681,7 @@ def on_intent(intent_request, session):
     elif intent_name == "RepeatIntent":
         return repeat_search(intent, session)
     elif intent_name == "AMAZON.HelpIntent":
-        return get_welcome_response()
+        return get_help(intent, session)
     elif intent_name == "AMAZON.CancelIntent" or intent_name == "AMAZON.StopIntent":
         return handle_session_end_request()
     else:
